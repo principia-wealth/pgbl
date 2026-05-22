@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador PGBL — Principia Wealth</title>
+<style>
+:root{
+  --navy:#16294D;--navy2:#1E3D6E;--azul:#2B5BA8;--azul-m:#4A7EC8;
+  --palha:#E3ECF8;--palha2:#F0F4FB;--nevoa:#F2F2F2;--branco:#FFFFFF;
+  --cinza:#666;--cinza2:#444;--borda:#D0D0D0;
+  --verm:#C0392B;--verde:#1A7A4A;--verde-bg:#E6F4EE;
+  --gray-h:#3D4F6B;--gray-bg:#F5F6F8;--gray-alt:#ECEEF2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Verdana,Geneva,Tahoma,sans-serif;background:var(--nevoa);color:var(--navy);font-size:13px;line-height:1.6}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:50px;border-bottom:3px solid var(--azul-m)}
+.logo-txt{color:#fff;font-size:13px;font-weight:bold;letter-spacing:3px}
+.logo-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);padding:2rem 2rem 1.75rem;text-align:center}
+.hero-supra{font-size:9px;font-weight:bold;letter-spacing:4px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:7px}
+.hero h1{font-size:20px;font-weight:bold;color:#fff;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.hero p{font-size:11px;color:rgba(255,255,255,0.6);max-width:500px;margin:0 auto}
+
+/* LAYOUT */
+.wrap{max-width:960px;margin:0 auto;padding:1.75rem 1.5rem}
+
+/* SECTION HEADING */
+.sec{font-size:9px;font-weight:bold;letter-spacing:3px;color:var(--cinza);text-transform:uppercase;
+     margin:2rem 0 1rem;padding-bottom:7px;border-bottom:2px solid var(--palha);
+     display:flex;align-items:center;gap:8px}
+.sec::before{content:'';display:block;width:3px;height:13px;background:var(--navy);border-radius:2px;flex-shrink:0}
+
+/* CARD */
+.card{background:#fff;border-radius:6px;border:1px solid var(--borda);padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 1px 4px rgba(22,41,77,.06)}
+
+/* REGIME BUTTONS */
+.regime-row{margin-bottom:1.25rem}
+.regime-row label{display:block;font-size:10px;font-weight:bold;color:var(--cinza);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.regime-btns{display:flex}
+.rbtn{background:var(--nevoa);border:1px solid var(--borda);color:var(--cinza);font-family:inherit;
+      font-size:11px;font-weight:bold;letter-spacing:1px;padding:8px 22px;cursor:pointer;
+      text-transform:uppercase;transition:all .15s;line-height:1}
+.rbtn:first-child{border-radius:4px 0 0 4px}
+.rbtn:last-child{border-radius:0 4px 4px 0;border-left:none}
+.rbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.regime-hint{font-size:10px;color:var(--cinza);margin-top:6px;line-height:1.5}
+
+/* FORM GRID — all inputs aligned */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.25rem;margin-bottom:1rem}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem 1.25rem;margin-bottom:1rem}
+.fgrp{display:flex;flex-direction:column;gap:4px}
+.fgrp label{font-size:10px;font-weight:bold;color:var(--cinza);text-transform:uppercase;letter-spacing:.5px}
+.fgrp input{font-family:inherit;font-size:13px;padding:9px 10px;border:1px solid var(--borda);border-radius:4px;background:#fff;color:var(--navy);transition:border-color .2s;width:100%}
+.fgrp input:focus{outline:none;border-color:var(--navy)}
+.fgrp input[readonly]{background:var(--palha2);color:var(--cinza2);border-style:dashed;cursor:default}
+.fgrp .fhint{font-size:10px;color:var(--cinza);margin-top:3px;line-height:1.45}
+.fgrp .fauto{font-size:10px;color:var(--verde);font-weight:bold;margin-top:3px}
+
+/* PGBL STATUS */
+.pgbl-status{background:var(--palha);border:1px solid var(--azul-m);border-radius:5px;
+             padding:1rem 1.25rem;margin-top:.75rem;
+             display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.ps-item{text-align:center}
+.ps-lbl{font-size:9px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:var(--cinza);margin-bottom:4px}
+.ps-val{font-size:16px;font-weight:bold;color:var(--navy)}
+.ps-sub{font-size:9px;color:var(--cinza);margin-top:2px}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
+.kpi{background:#fff;border:1px solid var(--borda);border-radius:5px;padding:.9rem;text-align:center;border-top:3px solid var(--borda)}
+.kpi.hi{border-top-color:var(--navy)}
+.kpi.pos{border-top-color:var(--verde)}
+.kpi-lbl{font-size:9px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:var(--cinza);margin-bottom:4px}
+.kpi-val{font-size:17px;font-weight:bold;color:var(--navy)}
+.kpi-sub{font-size:9px;color:var(--cinza);margin-top:3px;line-height:1.4}
+
+/* TABLE ANUAL */
+.twrap{overflow-x:auto}
+table.comp{width:100%;border-collapse:collapse;font-size:12px}
+table.comp thead th{background:var(--navy);color:#fff;font-size:9px;font-weight:bold;
+                    letter-spacing:1px;text-transform:uppercase;padding:9px 12px;text-align:right;white-space:nowrap}
+table.comp thead th:first-child{text-align:left;min-width:220px}
+table.comp thead th.th-pgbl{background:var(--azul)}
+table.comp tbody td{padding:8px 12px;border-bottom:1px solid #EAECF0;text-align:right;color:var(--navy);font-size:12px}
+table.comp tbody td:first-child{text-align:left;color:var(--cinza2);font-size:11px}
+table.comp tbody tr:nth-child(even) td{background:var(--palha2)}
+table.comp tbody tr.tr-total td{background:var(--navy)!important;color:#fff!important;font-weight:bold}
+table.comp tbody tr.tr-total td:first-child{color:#fff!important}
+table.comp tbody tr.tr-pgbl td{background:var(--palha)!important;color:var(--azul)}
+table.comp tbody tr.tr-sep td{background:var(--nevoa)!important;font-size:9px;font-weight:bold;
+                               letter-spacing:1.5px;text-transform:uppercase;color:var(--cinza);padding:5px 12px}
+table.comp tbody tr.tr-note td{background:#fff!important;font-size:10px;color:var(--cinza);font-style:italic}
+.pv{color:var(--verde);font-weight:bold}
+.nv{color:var(--verm);font-weight:bold}
+
+/* ALÍQUOTA CHIPS */
+.aliq-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.chip{background:#fff;border:1px solid var(--borda);border-radius:4px;padding:6px 10px;text-align:center;min-width:86px}
+.chip.ck{border-color:var(--navy);background:var(--palha)}
+.chip .cp{font-size:9px;color:var(--cinza);margin-bottom:2px}
+.chip .cv{font-size:14px;font-weight:bold}
+
+/* TABLE LP */
+table.lp{width:100%;border-collapse:collapse;font-size:12px}
+table.lp th{font-size:9px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;text-align:center;color:#fff}
+table.lp th:first-child{text-align:left}
+table.lp td{padding:8px 12px;border-bottom:1px solid #EAECF0;text-align:center;font-size:12px}
+table.lp td:first-child{text-align:left;font-size:11px}
+.lph-pgbl th{background:var(--navy)}
+.lph-conv th{background:var(--gray-h)}
+.lph-delta th{background:var(--verde)}
+.lpr-pgbl td{background:var(--palha2)}
+.lpr-pgbl-alt td{background:var(--palha)}
+.lpr-pgbl-tot td{background:var(--palha)!important;font-weight:bold;border-top:1.5px solid var(--azul)}
+.lpr-conv td{background:var(--gray-bg)}
+.lpr-conv-alt td{background:var(--gray-alt)}
+.lpr-conv-tot td{background:var(--gray-alt)!important;font-weight:bold;border-top:1.5px solid var(--gray-h)}
+.lpr-delta td{background:var(--verde-bg)!important;font-weight:bold;border-top:2px solid var(--verde)}
+.lpr-note td{background:var(--nevoa)!important;font-size:10px;color:var(--cinza);font-style:italic;padding:4px 12px}
+
+/* GUIA */
+.guia-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.gc{background:#fff;border-radius:5px;border:1px solid var(--borda);padding:1.25rem}
+.gc.full{grid-column:1/-1}
+.gc h3{font-size:9px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--navy);
+        margin-bottom:.75rem;padding-bottom:6px;border-bottom:2px solid var(--palha)}
+.gc p,.gc li{font-size:11px;color:var(--navy);line-height:1.8}
+.gc ul,.gc ol{padding-left:1.1rem}
+.gc li{margin-bottom:3px}
+.tg{display:inline-block;font-size:9px;font-weight:bold;padding:2px 8px;border-radius:3px;margin:2px 2px}
+.tg-g{background:var(--verde-bg);color:var(--verde)}
+.tg-r{background:#FDECEA;color:var(--verm)}
+.callout{background:var(--palha);border-left:3px solid var(--navy);border-radius:0 4px 4px 0;padding:10px 14px;margin:.75rem 0}
+.callout p{font-size:11px;color:var(--navy)}
+.callout strong{color:var(--navy)}
+table.guia-t{width:100%;font-size:11px;border-collapse:collapse}
+table.guia-t th{background:var(--navy);color:#fff;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;text-align:left}
+table.guia-t td{padding:7px 12px;border-bottom:1px solid var(--borda);vertical-align:top}
+table.guia-t tr:nth-child(even) td{background:var(--palha2)}
+table.guia-t tr.bold-row td{background:var(--navy)!important;color:#fff!important;font-weight:bold;font-size:13px}
+
+/* DISC */
+.disc{font-size:10px;color:var(--cinza);font-style:italic;margin-top:1.25rem;
+      padding-top:.9rem;border-top:1px solid var(--borda);line-height:1.7}
+
+/* FOOTER */
+.footer{background:var(--navy);color:rgba(255,255,255,.3);font-size:9px;letter-spacing:.5px;
+        padding:1.25rem 2rem;text-align:center;margin-top:3rem;line-height:2.2}
+
+/* TAG LEGAL */
+.legal-note{background:#FFF9EC;border:1px solid #F5C342;border-radius:4px;padding:.75rem 1rem;
+            font-size:10px;color:#7A5B00;margin-bottom:1rem;line-height:1.6}
+
+@media(max-width:640px){
+  .fg2,.fg3,.kpis,.guia-grid,.pgbl-status{grid-template-columns:1fr}
+  .hero h1{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="logo-txt">PRINCIPIA WEALTH</div>
+    <div class="logo-sub">CONSULTORIA DE INVESTIMENTOS</div>
+  </div>
+  <div class="logo-sub">CNPI Nº 8.820 · CVM</div>
+</div>
+
+<div class="hero">
+  <div class="hero-supra">Planejamento Tributário · Previdência Complementar Aberta</div>
+  <h1>Simulador de Benefício Fiscal — PGBL</h1>
+  <p>Estime o benefício do PGBL no IRPF de 2026 e projete a vantagem patrimonial de longo prazo</p>
+</div>
+
+<div class="wrap">
+
+<!-- PARÂMETROS -->
+<div class="sec">Parâmetros</div>
+
+<div class="legal-note">
+  <strong>Tabelas de referência:</strong> IRPF 2026 com isenção efetiva para base de cálculo até R$ 5.000/mês (Lei nº 15.270/2025). Declaração DIRPF 2027 — Ano-Calendário 2026. INSS: tabela progressiva 2025 (referência; sujeita a atualização pelo MPAS para 2026). Deduções: valores base 2025, sujeitos a atualização por IN RFB.
+</div>
+
+<div class="card">
+  <!-- REGIME -->
+  <div class="regime-row">
+    <label>Regime de Vínculo Previdenciário e Tributação</label>
+    <div class="regime-btns">
+      <button class="rbtn on" onclick="setRegime('clt',this)">CLT — Empregado Celetista</button>
+      <button class="rbtn" onclick="setRegime('outro',this)">Outro Regime (Autônomo, Servidor, Sócio, etc.)</button>
+    </div>
+    <div class="regime-hint" id="rhint">Para CLT: INSS e IRRF estimados automaticamente pelas tabelas progressivas vigentes. O IRRF é calibrado para zerar a restituição no modelo Completo sem deduções variáveis (saúde e instrução), refletindo a retenção mensal padrão do empregador.</div>
+  </div>
+
+  <!-- LINHA 1 -->
+  <div class="fg2">
+    <div class="fgrp">
+      <label>Rendimento Bruto Tributável Anual — RBT (R$)</label>
+      <input type="text" id="rbt" value="300.000" oninput="fmtMe(this);calcAll()">
+      <span class="fhint">Total dos rendimentos tributáveis no IRPF: salário, pró-labore, honorários, aluguéis, aposentadoria (acima da parcela isenta), entre outros. Exclui 13º, PLR, dividendos e rendimentos isentos.</span>
+    </div>
+    <div class="fgrp">
+      <label>INSS / Contribuição Previdenciária Anual (R$)</label>
+      <input type="text" id="inss" oninput="fmtMe(this);calcAll()">
+      <span class="fauto" id="inss-auto">↻ Calculado automaticamente — tabela progressiva INSS</span>
+    </div>
+  </div>
+
+  <!-- LINHA 2 -->
+  <div class="fg3">
+    <div class="fgrp">
+      <label>IRRF / Carnê-Leão Estimado no Ano (R$)</label>
+      <input type="text" id="irrf" oninput="fmtMe(this);calcAll()">
+      <span class="fauto" id="irrf-auto">↻ Estimado com base na RBT e deduções padrão</span>
+    </div>
+    <div class="fgrp">
+      <label>Dependentes Declarados (quantidade)</label>
+      <input type="number" id="ndep" value="0" min="0" max="20" oninput="calcAll()">
+      <span class="fhint">R$ 2.275,08 de dedução por dependente/ano (valor 2025)</span>
+    </div>
+    <div class="fgrp">
+      <label>Despesas Médicas Dedutíveis (R$)</label>
+      <input type="text" id="saude" value="0" oninput="fmtMe(this);calcAll()">
+      <span class="fhint">Sem limite — exigem comprovação documental</span>
+    </div>
+  </div>
+
+  <!-- LINHA 3 -->
+  <div class="fg3">
+    <div class="fgrp">
+      <label>Despesas com Instrução Dedutíveis (R$)</label>
+      <input type="text" id="instrucao" value="0" oninput="fmtMe(this);calcAll()">
+      <span class="fhint">Limite: R$ 3.561,50/pessoa (contribuinte + dependentes)</span>
+    </div>
+    <div class="fgrp">
+      <label>PGBL Já Aportado em 2026 (R$)</label>
+      <input type="text" id="pgbl_ja" value="0" oninput="fmtMe(this);calcAll()">
+      <span class="fhint">Total de aportes realizados ao PGBL até hoje</span>
+    </div>
+    <div class="fgrp">
+      <label>Rentabilidade Real Anual — Longo Prazo (%)</label>
+      <input type="number" id="rent" value="6" step="0.5" min="0" max="20" oninput="calcAll()">
+      <span class="fhint">Retorno real acima da inflação; aplicado igualmente em ambos os cenários</span>
+    </div>
+  </div>
+
+  <!-- STATUS PGBL -->
+  <div class="pgbl-status">
+    <div class="ps-item">
+      <div class="ps-lbl">Limite PGBL — 12% da RBT</div>
+      <div class="ps-val" id="ps-lim">—</div>
+      <div class="ps-sub">Teto anual dedutível</div>
+    </div>
+    <div class="ps-item">
+      <div class="ps-lbl">Já Aportado em 2026</div>
+      <div class="ps-val" id="ps-ja">—</div>
+      <div class="ps-sub" id="ps-pct">—% da RBT</div>
+    </div>
+    <div class="ps-item">
+      <div class="ps-lbl">Falta Aportar até 31/12/2026</div>
+      <div class="ps-val" id="ps-falta" style="color:var(--azul)">—</div>
+      <div class="ps-sub">Para atingir o limite máximo</div>
+    </div>
+  </div>
+</div>
+
+<!-- SEÇÃO: BENEFÍCIO ANUAL -->
+<div class="sec">Benefício Tributário Anual — Comparativo de Declaração IRPF 2027</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <div style="font-size:10px;font-weight:bold;color:var(--cinza);letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem">
+    Declaração DIRPF 2027 · Ano-Calendário 2026 · Lei nº 15.270/2025 (isenção ≤ R$ 5.000/mês na base de cálculo)
+  </div>
+  <div class="twrap"><table class="comp" id="tbl-anual"></table></div>
+  <div class="disc">
+    <strong>Notas metodológicas:</strong><br>
+    ¹ <em>IRPF 2026:</em> A Lei nº 15.270/2025 estabeleceu isenção efetiva para contribuintes com base de cálculo mensal até R$ 5.000, com redução progressiva (desconto especial) até R$ 7.000/mês. Para bases de cálculo acima de R$ 7.000/mês, aplica-se a tabela progressiva normal. A base progressiva utilizada é a publicada para o exercício 2025, mantida para 2026 acima da faixa de transição, até publicação de IN RFB específica para 2026.<br>
+    ² <em>IRRF estimado (CLT):</em> Calculado sobre o rendimento anual, considerando INSS e dependentes como deduções conhecidas pelo empregador, de forma que a restituição no modelo Completo seja nula em l'ausência de deduções variáveis (saúde, instrução). Despesas médicas e de instrução, por não serem comunicadas ao empregador, geram restituição quando informadas.<br>
+    ³ <em>Coluna "Completo + PGBL Otimizado":</em> Calcula sempre o benefício com o aporte máximo permitido (12% da RBT), independentemente do valor já aportado. A diferença entre o limite de 12% e o valor já aportado indica o aporte remanescente a ser realizado até 31/12/2026.<br>
+    ⁴ <em>Declaração simplificada:</em> Desconto padrão de 20% da RBT, limitado a R$ 16.754,34 (valor de referência 2025, sujeito a atualização para 2026). Incompatível com a dedução do PGBL.<br>
+    ⁵ Este simulador tem caráter educacional. Não constitui declaração oficial de IRPF. A Principia Wealth não se responsabiliza por divergências entre os valores estimados e os apurados na declaração.
+  </div>
+</div>
+
+<!-- SEÇÃO: LONGO PRAZO -->
+<div class="sec">Acumulação Patrimonial — PGBL vs. Ativo Convencional (10, 15 e 20 Anos)</div>
+
+<div class="card">
+  <div style="margin-bottom:1rem">
+    <div style="font-size:10px;font-weight:bold;color:var(--cinza);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Tabela Regressiva de IR — Resgates de Previdência Complementar (alíquota sobre o <em>total</em> resgatado)</div>
+    <div class="aliq-chips">
+      <div class="chip"><div class="cp">≤ 2 anos</div><div class="cv" style="color:var(--verm)">35%</div></div>
+      <div class="chip"><div class="cp">2–4 anos</div><div class="cv" style="color:var(--verm)">30%</div></div>
+      <div class="chip"><div class="cp">4–6 anos</div><div class="cv" style="color:#B7540A">25%</div></div>
+      <div class="chip"><div class="cp">6–8 anos</div><div class="cv" style="color:var(--cinza)">20%</div></div>
+      <div class="chip"><div class="cp">8–10 anos</div><div class="cv" style="color:var(--cinza)">15%</div></div>
+      <div class="chip ck"><div class="cp">≥ 10 anos</div><div class="cv" style="color:var(--verde)">10%</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--cinza);line-height:1.6">
+      Simulação com aporte máximo de <strong>12% da RBT</strong>. Para os horizontes de 10, 15 e 20 anos, aplica-se alíquota de <strong>10%</strong> sobre o saldo bruto total do PGBL (prazo ≥ 10 anos). Ativo convencional: IR de <strong>15%</strong> somente sobre o lucro apurado (renda fixa, prazo > 720 dias).
+    </div>
+  </div>
+  <div class="twrap"><table class="lp" id="tbl-lp"></table></div>
+  <div class="disc">
+    <strong>Notas metodológicas:</strong><br>
+    ¹ <em>PGBL:</em> Capital inicial = aporte próprio (12% da RBT) + benefício tributário anual reinvestido integralmente. IR de 10% calculado sobre o saldo bruto total no momento do resgate (principal + rendimentos). O prazo de cada aporte individual determina a alíquota; a simulação considera todos os aportes com prazo ≥ 10 anos.<br>
+    ² <em>Ativo Convencional (ex.: CDB, Tesouro Direto):</em> Capital inicial = apenas o aporte próprio (12% da RBT), sem o benefício tributário. IR de 15% calculado exclusivamente sobre o lucro apurado. Base de comparação justa: mesmo aporte de caixa do contribuinte.<br>
+    ³ Rentabilidade real constante e igual em ambos os cenários. Não considera taxas de administração, carregamento, come-cotas, ou variações de rentabilidade. Aportes únicos anuais (não mensais). Resultados baseados em projeções; rentabilidades passadas não garantem resultados futuros.<br>
+    ⁴ A Principia Wealth não se responsabiliza por decisões tomadas com base neste simulador. Consulte um profissional habilitado antes de investir.
+  </div>
+</div>
+
+<!-- SEÇÃO: GUIA PGBL -->
+<div class="sec">Guia PGBL — Conceitos e Elegibilidade</div>
+
+<div class="card" style="margin-bottom:1rem">
+  <div class="gc" style="border:none;padding:0">
+    <h3>O que é o PGBL e como funciona o benefício fiscal</h3>
+    <p>O <strong>Plano Gerador de Benefício Livre (PGBL)</strong> é uma modalidade de previdência complementar aberta, regulamentada pela SUSEP, que permite ao contribuinte deduzir da <em>base de cálculo</em> do IRPF as contribuições realizadas ao plano, observado o limite de <strong>12% da renda bruta tributável anual</strong> (art. 11, Lei Complementar nº 109/2001 e regulamentação da Receita Federal).</p>
+    <div class="callout" style="margin-top:.75rem">
+      <p><strong>Mecânica central:</strong> a dedução do PGBL não elimina o imposto — ela o <em>difere</em>. No resgate, o IR incide sobre o <em>montante total resgatado</em> (principal + rendimentos), pelo regime de tributação regressiva da previdência complementar. O benefício é tanto maior quanto maior for a diferença entre a alíquota marginal na fase de acumulação e a alíquota no resgate — idealmente 10%, após 10 anos.</p>
+    </div>
+  </div>
+</div>
+
+<div class="guia-grid">
+
+  <div class="gc">
+    <h3>Quem pode utilizar o benefício</h3>
+    <ul>
+      <li>Contribuintes que declaram o IRPF pelo <strong>modelo completo</strong> (deduções legais) — no modelo simplificado, não há dedução do PGBL</li>
+      <li>Contribuintes com alíquota marginal efetiva de <strong>7,5% ou superior</strong> — o benefício aumenta proporcionalmente à alíquota</li>
+      <li>Contribuintes que possuam <strong>vínculo previdenciário ativo</strong>: INSS (RGPS), Regime Próprio de Previdência Social (RPPS) de servidor público ou plano de previdência complementar fechada (EFPC). A Receita Federal exige contribuição previdenciária no mesmo período para validar a dedução do PGBL</li>
+      <li>O planejamento é especialmente vantajoso para alíquotas marginais de <strong>22,5% ou 27,5%</strong> na acumulação, com resgate planejado após 10 anos (alíquota de 10%)</li>
+    </ul>
+    <div class="callout" style="margin-top:.75rem">
+      <p><strong>Atenção:</strong> não é suficiente ter um PGBL aberto. É necessário <em>efetivamente contribuir</em> à previdência social (INSS ou RPPS) no mesmo ano-calendário em que se pleiteia a dedução.</p>
+    </div>
+  </div>
+
+  <div class="gc">
+    <h3>Limite de dedução e regras de aporte</h3>
+    <ul>
+      <li>O limite anual de dedução é de <strong>12% da Renda Bruta Tributável (RBT)</strong>, aplicável à soma de todos os aportes a planos PGBL realizados no ano-calendário</li>
+      <li>Aportes acima de 12% não são dedutíveis no exercício, mas continuam acumulando rendimento no plano normalmente</li>
+      <li>Os aportes devem ser realizados até <strong>31 de dezembro</strong> do ano-calendário para serem deduzidos naquele exercício</li>
+      <li>A dedução é válida apenas na declaração pelo <strong>modelo completo</strong>; no modelo simplificado, o desconto padrão já substitui todas as deduções legais</li>
+      <li>O <strong>VGBL</strong> (Vida Gerador de Benefício Livre) não permite dedução — o IR recai apenas sobre os rendimentos no resgate. O VGBL é indicado para quem declara pelo modelo simplificado ou já atingiu o limite de 12% no PGBL</li>
+    </ul>
+  </div>
+
+  <!-- COMPÕE -->
+  <div class="gc full">
+    <h3>Rendimentos que compõem a Renda Bruta Tributável (RBT) — base do limite de 12%</h3>
+    <p style="margin-bottom:.75rem">Integram a RBT os rendimentos classificados como <em>Rendimentos Tributáveis</em> na DIRPF — aqueles que compõem a base de cálculo do IRPF pelo regime progressivo anual:</p>
+    <div style="margin-bottom:.75rem">
+      <span class="tg tg-g">Salários, ordenados, vencimentos e remunerações de emprego</span>
+      <span class="tg tg-g">Pró-labore de sócios, diretores e titulares de empresa</span>
+      <span class="tg tg-g">Honorários por serviços autônomos (remuneração via RPA)</span>
+      <span class="tg tg-g">Aluguéis de imóveis e bens móveis recebidos de PF ou PJ</span>
+      <span class="tg tg-g">Pensão alimentícia recebida (judicial ou acordo homologado judicialmente)</span>
+      <span class="tg tg-g">Aposentadoria, pensão e reforma acima da parcela isenta (R$ 1.903,98/mês para +65 anos — 2025)</span>
+      <span class="tg tg-g">Remuneração de férias gozadas (a parcela do salário pago durante as férias)</span>
+      <span class="tg tg-g">Horas extras, adicionais noturnos, comissões e bônus pagos junto à folha ordinária</span>
+      <span class="tg tg-g">Rendimentos recebidos do exterior tributáveis no Brasil (sujeitos a carnê-leão)</span>
+      <span class="tg tg-g">Rendimentos de atividade rural tributável (resultado líquido positivo)</span>
+      <span class="tg tg-g">Remuneração de membros de Conselho de Administração, Fiscal e Diretoria (equiparado a pró-labore)</span>
+    </div>
+    <div class="callout">
+      <p><strong>Impacto prático para investidores de alta renda:</strong> contribuintes com patrimônio relevante frequentemente têm parcela expressiva da renda composta por dividendos, JCP, LCI/LCA/CRI/CRA e outros rendimentos isentos ou de tributação exclusiva. Esses valores <em>não</em> integram a RBT e, portanto, não ampliam a base para o limite de 12% do PGBL. O mapeamento correto da RBT é essencial antes de dimensionar os aportes.</p>
+    </div>
+  </div>
+
+  <!-- NÃO COMPÕE -->
+  <div class="gc full">
+    <h3>Rendimentos que NÃO integram a Renda Bruta Tributável para fins do PGBL</h3>
+    <p style="margin-bottom:.75rem">Os rendimentos abaixo são <em>isentos</em> ou sujeitos a <em>tributação exclusiva/definitiva na fonte</em> — não constam como "Rendimentos Tributáveis" na DIRPF e, portanto, não compõem a base de 12%:</p>
+    <div style="margin-bottom:.75rem">
+      <span class="tg tg-r">13º Salário (Gratificação de Natal) — tributação exclusiva na fonte; declarado em "Tributação Exclusiva/Definitiva"</span>
+      <span class="tg tg-r">Participação nos Lucros e Resultados — PLR — sempre tributação exclusiva na fonte</span>
+      <span class="tg tg-r">Dividendos distribuídos por PJ brasileira — isentos para o beneficiário PF (art. 10, Lei 9.249/1995)</span>
+      <span class="tg tg-r">Juros sobre Capital Próprio — JCP — tributação exclusiva na fonte (alíquota: 15%)</span>
+      <span class="tg tg-r">Rendimentos de LCI e LCA — isentos para PF</span>
+      <span class="tg tg-r">Rendimentos de CRI e CRA — isentos para PF</span>
+      <span class="tg tg-r">Rendimentos de debêntures de infraestrutura (Lei 12.431/2011) — isentos para PF</span>
+      <span class="tg tg-r">Rendimentos de caderneta de poupança — isentos para PF</span>
+      <span class="tg tg-r">Abono constitucional de 1/3 de férias — isento (art. 7º, XVII, CF/88; Súmula Vinculante STF)</span>
+      <span class="tg tg-r">Férias indenizadas na rescisão contratual — isentas (STF RE 478.410)</span>
+      <span class="tg tg-r">FGTS — isento; verbas rescisórias indenizatórias (aviso prévio indenizado, etc.) — isentas</span>
+      <span class="tg tg-r">Rendimentos de aplicações de renda fixa (CDB, Tesouro Direto, LFT, NTN-B, etc.) — tributação exclusiva na fonte pelo IR regressivo</span>
+      <span class="tg tg-r">Rendimentos de fundos de investimento — tributação exclusiva (come-cotas e/ou resgate)</span>
+      <span class="tg tg-r">Prêmios de loteria, sorteios e concursos — tributação exclusiva na fonte (30%)</span>
+      <span class="tg tg-r">Bolsas de estudo e pesquisa dentro dos limites legais — isentas</span>
+      <span class="tg tg-r">Doações e heranças recebidas — sujeitas ao ITCMD estadual; não compõem IRPF como rendimento</span>
+    </div>
+  </div>
+
+  <!-- TABELA REGRESSIVA -->
+  <div class="gc full">
+    <h3>Tabela Regressiva de IR — Resgates de Previdência Complementar</h3>
+    <p style="font-size:11px;margin-bottom:.75rem">A alíquota de IR no resgate do PGBL é determinada pelo <strong>prazo de acumulação de cada aporte individual</strong> — não da data de abertura do plano. Resgates em prazos curtos anulam o benefício fiscal e podem tornar o PGBL desfavorável. O planejamento de resgate é parte essencial da estratégia.</p>
+    <table class="guia-t">
+      <thead>
+        <tr>
+          <th>Prazo de Acumulação (por aporte)</th>
+          <th>Alíquota IR (sobre o total resgatado)</th>
+          <th>Avaliação estratégica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Até 2 anos</td><td style="color:var(--verm);font-weight:bold">35%</td><td>Desfavorável em qualquer cenário — evitar resgates neste prazo</td></tr>
+        <tr><td>Mais de 2 até 4 anos</td><td style="color:var(--verm);font-weight:bold">30%</td><td>Desfavorável — IR superior à renda fixa convencional (22,5%)</td></tr>
+        <tr><td>Mais de 4 até 6 anos</td><td style="font-weight:bold">25%</td><td>Começa a se viabilizar para alíquotas marginais de 27,5%</td></tr>
+        <tr><td>Mais de 6 até 8 anos</td><td style="font-weight:bold">20%</td><td>Horizonte mínimo recomendado para contribuinte em 27,5%</td></tr>
+        <tr><td>Mais de 8 até 10 anos</td><td style="font-weight:bold">15%</td><td>Equivalente à alíquota de renda fixa longa (> 720 dias); viável</td></tr>
+        <tr class="bold-row"><td>Acima de 10 anos</td><td>10%</td><td>Horizonte ideal — maximiza o diferencial frente à renda fixa</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:.75rem">
+      <p><strong>Atenção — regime de tributação:</strong> existe também a opção pelo regime de tributação progressiva (tabela progressiva anual) no resgate. Pode ser vantajoso para contribuintes com renda total baixa no ano de resgate (ex.: aposentados isentos). A escolha pelo regime é irrevogável por plano — avalie com seu assessor.</p>
+    </div>
+  </div>
+
+</div><!-- /guia-grid -->
+
+<div class="disc" style="margin-top:1.25rem">
+  As informações desta página têm caráter exclusivamente educacional e não configuram oferta, recomendação ou aconselhamento de investimento, de natureza fiscal ou previdenciária. A adequação do PGBL à situação de cada contribuinte depende de análise individualizada da composição de renda, regime tributário, horizonte de acumulação e estratégia de resgate. A legislação tributária pode ser alterada a qualquer tempo, modificando as condições apresentadas. Valores de deduções e tabelas salariais são sujeitos a atualização anual por ato do Poder Executivo e Instrução Normativa da Receita Federal. Consulte um contador ou assessor de investimentos habilitado antes de tomar qualquer decisão. <strong>Principia Wealth Consultoria de Investimentos — CNPI nº 8.820 — Consultora de Valores Mobiliários registrada na CVM.</strong>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="footer">
+  PRINCIPIA WEALTH CONSULTORIA DE INVESTIMENTOS · CNPI Nº 8.820 · Consultora de Valores Mobiliários Registrada na CVM<br>
+  Referências legais: Lei nº 15.270/2025 (IRPF 2026) · LC nº 109/2001 (Previdência Complementar) · Lei nº 9.249/1995 · IN RFB · Tabela Regressiva PGBL (Portaria MF)<br>
+  Material de uso exclusivamente educacional — não constitui declaração de IRPF, recomendação de investimento ou consultoria fiscal.
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTES (referência 2025 / vigentes 2026)
+// ═══════════════════════════════════════════════
+const DEP_ANO   = 2275.08;   // dedução anual por dependente
+const LIM_INSTR = 3561.50;   // limite instrução por pessoa
+const LIM_SIMPL = 16754.34;  // teto desconto simplificado
+const INSS_TETO = 908.86;    // teto INSS mensal (tabela 2025)
+
+// INSS 2025 — tabela progressiva mensal
+function calcINSSm(sal) {
+  const faixas = [{a:1518.00,r:.075},{a:2793.88,r:.09},{a:4190.83,r:.12},{a:8157.41,r:.14}];
+  let tot=0, prev=0;
+  for(const f of faixas) {
+    if(sal <= prev) break;
+    tot += (Math.min(sal,f.a) - prev) * f.r;
+    prev = f.a;
+    if(sal <= f.a) break;
+  }
+  return Math.min(tot, INSS_TETO);
+}
+
+// ───────────────────────────────────────────────
+// IRPF 2026 — Lei nº 15.270/2025
+// Base: tabela progressiva 2025 + isenção efetiva
+// até R$ 5.000/mês na base de cálculo (60k/ano)
+// com desconto especial linear até R$ 7.000/mês
+// ───────────────────────────────────────────────
+
+// Progressivo puro (tabela base 2025)
+function irBase_a(bc) {
+  const b = Math.max(0,bc);
+  if(b <= 28467.20) return 0;
+  if(b <= 33919.80) return b*.075 - 2135.04;
+  if(b <= 45012.60) return b*.15  - 4679.03;
+  if(b <= 55976.16) return b*.225 - 8054.97;
+  return b*.275 - 10853.78;
+}
+function irBase_m(bc) {
+  const b = Math.max(0,bc);
+  if(b <= 2428.80) return 0;
+  if(b <= 2826.65) return b*.075 - 182.16;
+  if(b <= 3751.05) return b*.15  - 394.16;
+  if(b <= 4664.68) return b*.225 - 675.49;
+  return b*.275 - 908.73;
+}
+
+// Anual 2026 com isenção (para declaração)
+const IR_A_60K = 60000*.275 - 10853.78; // = 5646.22
+function calcIRa(bc) {
+  const b = Math.max(0,bc);
+  const ip = irBase_a(b);
+  if(b <= 60000) return 0;
+  if(b < 84000) return Math.max(0, ip - IR_A_60K*(84000-b)/24000);
+  return ip;
+}
+
+// Mensal 2026 (estimativa IRRF)
+const IR_M_5K = 5000*.275 - 908.73; // = 466.27
+function calcIRm(bc) {
+  const b = Math.max(0,bc);
+  const ip = irBase_m(b);
+  if(b <= 5000) return 0;
+  if(b < 7000) return Math.max(0, ip - IR_M_5K*(7000-b)/2000);
+  return ip;
+}
+
+// ───────────────────────────────────────────────
+let regime = 'clt';
+
+function setRegime(r, btn) {
+  regime = r;
+  document.querySelectorAll('.rbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const isCLT = r === 'clt';
+  const inssEl = document.getElementById('inss');
+  const irrfEl = document.getElementById('irrf');
+  inssEl.readOnly = isCLT;
+  irrfEl.readOnly = isCLT;
+  document.getElementById('inss-auto').style.display = isCLT ? 'block':'none';
+  document.getElementById('irrf-auto').style.display = isCLT ? 'block':'none';
+  document.getElementById('rhint').textContent = isCLT
+    ? 'Para CLT: INSS e IRRF estimados automaticamente pelas tabelas progressivas vigentes. O IRRF é calibrado para zerar a restituição no modelo Completo sem deduções variáveis (saúde e instrução), refletindo a retenção mensal padrão do empregador.'
+    : 'Para autônomos, servidores e sócios: informe manualmente o INSS/contribuição previdenciária e o total de IRRF retido na fonte ou recolhido via carnê-leão no ano-calendário de 2026.';
+  if(!isCLT){ inssEl.value = ''; irrfEl.value = ''; }
+  calcAll();
+}
+
+// ───────────────────────────────────────────────
+// FORMATAÇÃO
+// ───────────────────────────────────────────────
+function fmtMe(el) {
+  const s = el.selectionStart, ol = el.value.length;
+  const dig = el.value.replace(/\D/g,'');
+  if(!dig){ el.value=''; return; }
+  const fmt = parseInt(dig,10).toLocaleString('pt-BR');
+  el.value = fmt;
+  try{ el.setSelectionRange(s+(fmt.length-ol), s+(fmt.length-ol)); }catch(e){}
+}
+function parseM(id) {
+  const v = (document.getElementById(id)||{}).value||'0';
+  return parseFloat(v.replace(/\./g,'').replace(',','.')) || 0;
+}
+function parseN(id) { return parseFloat(document.getElementById(id).value)||0; }
+
+function fmtR(v) {
+  const neg = v < 0;
+  const s = 'R$\u00a0' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return neg ? `(${s})` : s;
+}
+function fmtPct(v, dec=1) { return (v*100).toFixed(dec).replace('.',',')+'%'; }
+
+// ───────────────────────────────────────────────
+// CÁLCULO PRINCIPAL
+// ───────────────────────────────────────────────
+function calcAll() {
+  const rbt     = parseM('rbt');
+  let inss_v    = parseM('inss');
+  let irrf_v    = parseM('irrf');
+  const ndep    = parseN('ndep');
+  const saude   = parseM('saude');
+  const instr   = parseM('instrucao');
+  const pgbl_ja = parseM('pgbl_ja');
+  const rent    = parseN('rent')/100;
+
+  const npessoas = 1 + ndep;
+  const instr_ded = Math.min(instr, LIM_INSTR * npessoas);
+
+  // CLT: auto-calc INSS e IRRF
+  if(regime === 'clt' && rbt > 0) {
+    const sal_m   = rbt / 12;
+    const inss_m  = calcINSSm(sal_m);
+    inss_v        = inss_m * 12;
+    // IRRF calibrado: usa tabela anual com deduções que o empregador conhece
+    // (INSS + dependentes), sem saúde/instrução → restituição = 0 no Completo sem variáveis
+    const ded_emp = inss_v + ndep * DEP_ANO;
+    const bc_emp  = Math.max(0, rbt - ded_emp);
+    irrf_v        = calcIRa(bc_emp);
+    document.getElementById('inss').value = Math.round(inss_v).toLocaleString('pt-BR');
+    document.getElementById('irrf').value = Math.round(irrf_v).toLocaleString('pt-BR');
+  }
+
+  const limite_pgbl = rbt * 0.12;
+  const pgbl_falta  = Math.max(0, limite_pgbl - pgbl_ja);
+
+  // STATUS PGBL
+  document.getElementById('ps-lim').textContent = fmtR(limite_pgbl);
+  document.getElementById('ps-ja').textContent  = fmtR(pgbl_ja);
+  const pct_ja = rbt > 0 ? (pgbl_ja/rbt*100).toFixed(1).replace('.',',') : '0,0';
+  document.getElementById('ps-pct').textContent = pct_ja + '% da RBT aportado';
+  const faltaEl = document.getElementById('ps-falta');
+  if(pgbl_falta <= 0.01){
+    faltaEl.textContent = 'Limite atingido ✓';
+    faltaEl.style.color = 'var(--verde)';
+  } else {
+    faltaEl.textContent = fmtR(pgbl_falta);
+    faltaEl.style.color = 'var(--azul)';
+  }
+
+  // ── SIMPLIFICADO ─────────────────────────────
+  const ded_s  = Math.min(rbt * 0.20, LIM_SIMPL);
+  const bc_s   = Math.max(0, rbt - ded_s);
+  const ir_s   = calcIRa(bc_s);
+  const rest_s = irrf_v - ir_s;
+  const ae_s   = rbt > 0 ? ir_s/rbt : 0;
+
+  // ── COMPLETO sem PGBL ─────────────────────────
+  const ded_c  = inss_v + ndep*DEP_ANO + saude + instr_ded;
+  const bc_c   = Math.max(0, rbt - ded_c);
+  const ir_c   = calcIRa(bc_c);
+  const rest_c = irrf_v - ir_c;
+  const ae_c   = rbt > 0 ? ir_c/rbt : 0;
+
+  // ── COMPLETO + PGBL (sempre 12%) ──────────────
+  const ded_p  = ded_c + limite_pgbl;
+  const bc_p   = Math.max(0, rbt - ded_p);
+  const ir_p   = calcIRa(bc_p);
+  const rest_p = irrf_v - ir_p;
+  const ae_p   = rbt > 0 ? ir_p/rbt : 0;
+
+  const benef  = ir_c - ir_p;  // benefício total com 12% PGBL
+  const benef_rate = limite_pgbl > 0 ? benef/limite_pgbl : 0;
+
+  // ── KPIs ─────────────────────────────────────
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi hi">
+      <div class="kpi-lbl">Limite PGBL (12% da RBT)</div>
+      <div class="kpi-val">${fmtR(limite_pgbl)}</div>
+      <div class="kpi-sub">Máx. dedutível — Aporte até 31/12/2026</div>
+    </div>
+    <div class="kpi pos">
+      <div class="kpi-lbl">Benefício Tributário Estimado</div>
+      <div class="kpi-val" style="color:var(--verde)">${fmtR(benef)}</div>
+      <div class="kpi-sub">Redução de IR com aporte de 12% da RBT</div>
+    </div>
+    <div class="kpi pos">
+      <div class="kpi-lbl">Retorno Imediato sobre Aporte</div>
+      <div class="kpi-val" style="color:var(--verde)">${fmtPct(benef_rate)}</div>
+      <div class="kpi-sub">Benefício ÷ aporte PGBL (${fmtR(limite_pgbl)})</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Alíq. Efetiva com PGBL Máximo</div>
+      <div class="kpi-val">${fmtPct(ae_p)}</div>
+      <div class="kpi-sub">vs. ${fmtPct(ae_c)} sem PGBL · ${fmtPct(ae_s)} simplificado</div>
+    </div>`;
+
+  // ── TABELA ANUAL ───────────────────────────────
+  const rows = [
+    // Deduções
+    {label:'Rendimento Bruto Tributável (RBT)',  s:fmtR(rbt),          c:fmtR(rbt),           p:fmtR(rbt),        cat:false},
+    {label:'(−) INSS / Contrib. Previdenciária', s:'N/A',              c:fmtR(inss_v),        p:fmtR(inss_v),     cat:false},
+    {label:'(−) Dedução por Dependentes',        s:'N/A',              c:fmtR(ndep*DEP_ANO),  p:fmtR(ndep*DEP_ANO), cat:false},
+    {label:'(−) Despesas Médicas',               s:'N/A',              c:fmtR(saude),         p:fmtR(saude),      cat:false},
+    {label:'(−) Despesas com Instrução',         s:'N/A',              c:fmtR(instr_ded),     p:fmtR(instr_ded),  cat:false},
+    {label:'(−) Desconto Simplificado (20%)',    s:fmtR(ded_s),        c:'N/A',               p:'N/A',            cat:false},
+    {label:'(−) Dedução PGBL (12% da RBT)',      s:'N/A',              c:'N/A',               p:fmtR(limite_pgbl), cat:false},
+    // IR
+    {label:'IMPOSTO DE RENDA', sep:true},
+    {label:'Base de Cálculo do IRPF',            s:fmtR(bc_s),         c:fmtR(bc_c),          p:fmtR(bc_p),       cat:false},
+    {label:'Alíquota Efetiva de IR',             s:fmtPct(ae_s),       c:fmtPct(ae_c),        p:fmtPct(ae_p),     cat:false},
+    {label:'IR Devido na Declaração',            s:fmtR(ir_s),         c:fmtR(ir_c),          p:fmtR(ir_p),       cat:false},
+    {label:'IRRF / Carnê-Leão Retido no Ano',   s:fmtR(irrf_v),       c:fmtR(irrf_v),        p:fmtR(irrf_v),     cat:false},
+    {label:'Restituição (+) / IR a Pagar (−)',   sv:rest_s, cv:rest_c, pv:rest_p, total:true},
+    // PGBL
+    {label:'ANÁLISE DO PGBL', sep:true},
+    {label:'Benefício tributário vs. Completo',  s:'—',                c:'—',                 p:fmtR(benef),      cat:false},
+    {label:`Falta aportar para atingir 12%`,     s:'—',                c:'—',                 p:pgbl_falta>0.01?fmtR(pgbl_falta):'Limite atingido', pgblRow:true},
+    {label:'Retorno imediato sobre aporte',       s:'—',               c:'—',                 p:fmtPct(benef_rate),pgblRow:true},
+  ];
+
+  let html = `<thead><tr>
+    <th>Linha de Cálculo</th>
+    <th>Simplificado</th>
+    <th>Completo<br><span style="font-weight:normal;text-transform:none;letter-spacing:0">(sem PGBL)</span></th>
+    <th class="th-pgbl">Completo + PGBL<br><span style="font-weight:normal;text-transform:none;letter-spacing:0">★ Otimizado (12% da RBT)</span></th>
+  </tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    if(r.sep) {
+      html += `<tr class="tr-sep"><td colspan="4">${r.label}</td></tr>`;
+    } else if(r.total) {
+      const cs = r.sv>=0?'pv':'nv', cc=r.cv>=0?'pv':'nv', cp=r.pv>=0?'pv':'nv';
+      html += `<tr class="tr-total"><td>${r.label}</td>
+        <td class="${cs}">${fmtR(r.sv)}</td>
+        <td class="${cc}">${fmtR(r.cv)}</td>
+        <td class="${cp}">${fmtR(r.pv)}</td></tr>`;
+    } else if(r.pgblRow) {
+      html += `<tr class="tr-pgbl"><td>${r.label}</td><td>${r.s}</td><td>${r.c}</td><td>${r.p}</td></tr>`;
+    } else {
+      html += `<tr><td>${r.label}</td><td>${r.s}</td><td>${r.c}</td><td>${r.p}</td></tr>`;
+    }
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-anual').innerHTML = html;
+
+  // ── LONGO PRAZO ────────────────────────────────
+  calcLP(rbt, inss_v, rent);
+}
+
+function calcLP(rbt, inss_v, rent) {
+  const aporte   = rbt * 0.12;
+  const ded_base = inss_v;
+  const ir_sem   = calcIRa(Math.max(0, rbt - ded_base));
+  const ir_com   = calcIRa(Math.max(0, rbt - ded_base - aporte));
+  const benef    = Math.max(0, ir_sem - ir_com);
+
+  const cap_pgbl = aporte + benef;  // aporte + benefício reinvestido
+  const cap_conv = aporte;          // só o aporte (sem benefício)
+  const ALIQ_CONV = 0.15;
+  const ALIQ_PGBL = 0.10;           // ≥ 10 anos
+
+  function cen(anos) {
+    const pat_p  = cap_pgbl * Math.pow(1+rent, anos);
+    const liq_p  = pat_p * (1 - ALIQ_PGBL);
+    const pat_c  = cap_conv * Math.pow(1+rent, anos);
+    const lucro  = pat_c - cap_conv;
+    const liq_c  = pat_c - lucro * ALIQ_CONV;
+    const ir_c_v = lucro * ALIQ_CONV;
+    const delt   = liq_p - liq_c;
+    const dpct   = liq_c > 0 ? delt/liq_c : 0;
+    return {pat_p, liq_p, pat_c, liq_c, ir_c_v, delt, dpct};
+  }
+
+  const c10=cen(10), c15=cen(15), c20=cen(20);
+
+  let h = `<thead>`;
+  h += `<tr class="lph-pgbl"><th style="text-align:left">Métrica</th><th>10 Anos</th><th>15 Anos</th><th>20 Anos</th></tr>`;
+  h += `</thead><tbody>`;
+
+  // PGBL BLOCK
+  h += `<tr class="lph-pgbl"><th colspan="4" style="text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:8px 12px">PGBL — Previdência Complementar · IR de 10% sobre o total resgatado (prazo ≥ 10 anos)</th></tr>`;
+  h += `<tr class="lpr-pgbl"><td>Aporte próprio anual (12% da RBT)</td><td>${fmtR(aporte)}</td><td>${fmtR(aporte)}</td><td>${fmtR(aporte)}</td></tr>`;
+  h += `<tr class="lpr-pgbl-alt"><td>Benefício tributário reinvestido</td><td>${fmtR(benef)}</td><td>${fmtR(benef)}</td><td>${fmtR(benef)}</td></tr>`;
+  h += `<tr class="lpr-pgbl"><td>Capital total investido no PGBL</td><td>${fmtR(cap_pgbl)}</td><td>${fmtR(cap_pgbl)}</td><td>${fmtR(cap_pgbl)}</td></tr>`;
+  h += `<tr class="lpr-pgbl-alt"><td>Saldo bruto acumulado (antes do IR)</td><td>${fmtR(c10.pat_p)}</td><td>${fmtR(c15.pat_p)}</td><td>${fmtR(c20.pat_p)}</td></tr>`;
+  h += `<tr class="lpr-note"><td colspan="4">IR de resgate: 10% sobre o saldo bruto total · prazo ≥ 10 anos em todos os cenários</td></tr>`;
+  h += `<tr class="lpr-pgbl-tot"><td>Patrimônio Líquido PGBL (após IR 10%)</td><td>${fmtR(c10.liq_p)}</td><td>${fmtR(c15.liq_p)}</td><td>${fmtR(c20.liq_p)}</td></tr>`;
+
+  // CONVENCIONAL BLOCK
+  h += `<tr class="lph-conv"><th colspan="4" style="text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:8px 12px">Ativo Convencional (ex.: CDB, Tesouro Direto) · IR de 15% apenas sobre o lucro</th></tr>`;
+  h += `<tr class="lpr-conv"><td>Aporte próprio (mesmo valor, sem benefício)</td><td>${fmtR(cap_conv)}</td><td>${fmtR(cap_conv)}</td><td>${fmtR(cap_conv)}</td></tr>`;
+  h += `<tr class="lpr-note"><td colspan="4">O benefício tributário do PGBL não é computado aqui — permanece reinvestido no PGBL (comparação justa: mesmo desembolso de caixa)</td></tr>`;
+  h += `<tr class="lpr-conv-alt"><td>Saldo bruto acumulado (antes do IR)</td><td>${fmtR(c10.pat_c)}</td><td>${fmtR(c15.pat_c)}</td><td>${fmtR(c20.pat_c)}</td></tr>`;
+  h += `<tr class="lpr-conv"><td>IR sobre lucro (15% sobre ${fmtR(c20.pat_c-cap_conv)} em 20a)</td><td>${fmtR(c10.ir_c_v)}</td><td>${fmtR(c15.ir_c_v)}</td><td>${fmtR(c20.ir_c_v)}</td></tr>`;
+  h += `<tr class="lpr-conv-tot"><td>Patrimônio Líquido Convencional (após IR 15%)</td><td>${fmtR(c10.liq_c)}</td><td>${fmtR(c15.liq_c)}</td><td>${fmtR(c20.liq_c)}</td></tr>`;
+
+  // DELTA BLOCK
+  h += `<tr class="lph-delta"><th colspan="4" style="text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:8px 12px">Vantagem do PGBL — Patrimônio Líquido PGBL menos Convencional</th></tr>`;
+  h += `<tr class="lpr-delta">
+    <td>Ganho patrimonial líquido adicional (R$)</td>
+    <td style="color:${c10.delt>=0?'var(--verde)':'var(--verm)'}">${fmtR(c10.delt)}</td>
+    <td style="color:${c15.delt>=0?'var(--verde)':'var(--verm)'}">${fmtR(c15.delt)}</td>
+    <td style="color:${c20.delt>=0?'var(--verde)':'var(--verm)'}">${fmtR(c20.delt)}</td></tr>`;
+  h += `<tr class="lpr-delta">
+    <td>Ganho adicional sobre o ativo convencional (%)</td>
+    <td>${fmtPct(c10.dpct)}</td><td>${fmtPct(c15.dpct)}</td><td>${fmtPct(c20.dpct)}</td></tr>`;
+
+  h += '</tbody>';
+  document.getElementById('tbl-lp').innerHTML = h;
+}
+
+// ───────────────────────────────────────────────
+// INIT
+// ───────────────────────────────────────────────
+window.addEventListener('load', () => {
+  document.getElementById('inss').readOnly = true;
+  document.getElementById('irrf').readOnly = true;
+  // Formatar inputs iniciais
+  ['rbt','saude','instrucao','pgbl_ja'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el && el.value) fmtMe(el);
+  });
+  calcAll();
+});
+</script>
+</body>
+</html>
